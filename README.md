@@ -64,4 +64,4 @@ npm run preview   # náhled produkčního buildu
 npm run lint      # kontrola kódu
 ```
 
-Aplikace je konfigurována pro nasazení do podadresáře `/rpi-control3/` (viz `base` ve `vite.config.js`).
+
