@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@import 'konsta/react/theme.css';
+
+.hairline-b::after {
+    background-color: transparent!important;
+}

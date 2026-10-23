@@ -1,0 +1,153 @@
+import { useState, useEffect, useOptimistic, startTransition } from 'react';
+import { useAuth } from '../context/AuthContext';
+import Loading from '../components/Loading';
+import saveTaskToServerr from '../actions/SaveTask';
+import { HatGlasses, History, HeartPulse } from 'lucide-react';
+// Konsta UI
+import { Block, List, ListItem, Toggle, BlockTitle } from 'konsta/react';
+import axios from 'axios';
+
+
+export default function MachineDetail({ device, onBack }) {
+  const [isActive, setIsActive] = useState(false);
+  const [first, setFirst] = useState(true);
+  const [machineDetails, setMachineDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activatorLoading, setActivatorLoading] = useState(true);
+
+
+  useEffect(() => {
+    fetchMachineDetails();
+
+    if (device?.id) {
+      // Automatické obnovení každých 30 sekund
+      const interval = setInterval(fetchMachineDetails, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [device?.id]);
+
+  const fetchMachineDetails = async () => {
+    try {
+      const response = await axios.get(`https://scraper.shopimo.cz/api/?method=machineDetails&machine_id=${device.id}`);
+      if (response.data && response.data.result === 'ok') {
+        if(first) 
+        {
+          setFirst(false);
+          setActivatorLoading(false);
+        }
+        setMachineDetails(response.data);
+        setIsActive(response.data.active == 1); 
+      }
+    } catch (error) {
+      console.error('Error fetching machine details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggle = async (toggled) => {
+    const value = toggled ? 1 : 0;
+    const API_URL = `https://scraper.shopimo.cz/api/?method=machineUpdate&machine_id=${device.id}&do=active&value=${value}`;
+    setIsActive(toggled);
+    try {
+      await axios.get(API_URL);
+      
+      await fetchMachineDetails();
+    } catch (error) {
+      console.error('Error updating machine status:', error);
+    } 
+  };
+
+  const { getStatusIcon } = useAuth();
+  const { formatAgo } = useAuth();
+  const { formatEfficiency } = useAuth();
+
+
+  return (
+    <>
+      <Block strong inset outline className='flex justify-between'>
+        <div className='flex-1 mt-4'>
+          {machineDetails && getStatusIcon(machineDetails) }
+        </div>
+        <div className='flex-5'>
+          <h2 className="text-lg font-bold">{device?.name ?? 'Device'}</h2>
+          <p className="mt-4">{device.ip}</p>
+        </div>
+      </Block>
+
+      {loading ? (
+        <Loading />
+      ) : (
+        <>
+          <BlockTitle className='font-medium'>STATUS</BlockTitle>
+
+          <List inset strongIos outlineIos>
+            <ListItem
+              label
+              title="Active"
+              className="border-gray-200 border-b"
+              after={
+                <Toggle
+                  checked={isActive == 1}
+                  onChange={() => handleToggle(!machineDetails.active)}
+                />
+              }
+            />
+          </List>       
+
+          <BlockTitle className='font-medium'>ACTIVITY</BlockTitle>
+          <List inset strongIos outlineIos>
+            <ListItem
+              media={<HeartPulse />}
+              title="Last alive"
+              className="border-gray-200 border-b"
+              after={formatAgo(machineDetails.aliveAgoSec)}
+            />
+            <ListItem
+              media={<HatGlasses />}
+              title="Last worked"
+              className="border-gray-200 border-b"
+              after={formatAgo(machineDetails.workedAgoSec)}
+            />
+            <ListItem
+              media={<History />}
+              title="Efficiency last hour"
+              className="border-gray-200 border-b"
+              after={
+                <>
+                  {machineDetails.tasks_last_1_hour} |
+                  {formatEfficiency(machineDetails.tasks_last_1_hour/1, machineDetails.estimatedSpeed)}
+                </>
+              }
+            />
+            <ListItem
+              media={<History />}
+              title="Efficiency last 3 hours"
+              className="border-gray-200 border-b"
+              after={
+                <>
+                  {Math.round(machineDetails.tasks_last_3_hour/3)} |
+                  {formatEfficiency(machineDetails.tasks_last_3_hour/3, machineDetails.estimatedSpeed)}
+                </>
+              }
+            />
+            <ListItem
+              media={<History />}
+              title="Efficiency last 8 hours"
+              className="border-gray-200 border-b"
+              after={
+                <>
+                  {Math.round(machineDetails.tasks_last_8_hour/8)} |
+                  {formatEfficiency(machineDetails.tasks_last_8_hour/8, machineDetails.estimatedSpeed)}
+                </>
+              }
+            />
+            
+          </List>
+        </>
+      )}
+      
+    </>
+  );
+}
+
