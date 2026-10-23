@@ -44,7 +44,7 @@ export default function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full px-4 py-2 border bg-white border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            placeholder="vas@email.cz"
+            placeholder="any@email.cz"
           />
         </div>
         <div className="mb-6">
@@ -58,7 +58,7 @@ export default function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            placeholder="••••••••"
+            placeholder="any password"
           />
         </div>
 

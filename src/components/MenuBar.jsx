@@ -7,7 +7,7 @@ export default function MenuBar({ isLoggedIn, onBack }) {
   if (!isLoggedIn) {
     return (
       <div className="flex flex-col items-center mt-2">
-        <h1 className="text-3xl font-bold">RPI Control</h1>
+        <h1 className="text-3xl font-bold">RPI Control - DEMO</h1>
         <img src="favicon/android-chrome-192x192.png" alt="RPI Control" className="h-[192px] w-[192px]" />
       </div>
     );
