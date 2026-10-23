@@ -1,19 +1,18 @@
-import { useState, useEffect, useOptimistic, startTransition } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/useAuth';
 import Loading from '../components/Loading';
-import saveTaskToServerr from '../actions/SaveTask';
 import { HatGlasses, History, HeartPulse } from 'lucide-react';
 // Konsta UI
 import { Block, List, ListItem, Toggle, BlockTitle } from 'konsta/react';
 import axios from 'axios';
 
 
-export default function MachineDetail({ device, onBack }) {
+export default function MachineDetail({ device }) {
   const [isActive, setIsActive] = useState(false);
   const [first, setFirst] = useState(true);
   const [machineDetails, setMachineDetails] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activatorLoading, setActivatorLoading] = useState(true);
+  const [activatorLoading, setActivatorLoading] = useState(false);
 
 
   useEffect(() => {
@@ -27,6 +26,7 @@ export default function MachineDetail({ device, onBack }) {
   }, [device?.id]);
 
   const fetchMachineDetails = async () => {
+    if( activatorLoading ) return;
     try {
       const response = await axios.get(`https://scraper.shopimo.cz/api/?method=machineDetails&machine_id=${device.id}`);
       if (response.data && response.data.result === 'ok') {
@@ -46,16 +46,18 @@ export default function MachineDetail({ device, onBack }) {
   };
 
   const handleToggle = async (toggled) => {
+    setActivatorLoading(true);
     const value = toggled ? 1 : 0;
     const API_URL = `https://scraper.shopimo.cz/api/?method=machineUpdate&machine_id=${device.id}&do=active&value=${value}`;
     setIsActive(toggled);
     try {
       await axios.get(API_URL);
-      
       await fetchMachineDetails();
     } catch (error) {
       console.error('Error updating machine status:', error);
-    } 
+    } finally {
+      setActivatorLoading(false);
+    }
   };
 
   const { getStatusIcon } = useAuth();
@@ -88,7 +90,8 @@ export default function MachineDetail({ device, onBack }) {
               className="border-gray-200 border-b"
               after={
                 <Toggle
-                  checked={isActive == 1}
+                  checked={isActive}
+                  disabled={activatorLoading}
                   onChange={() => handleToggle(!machineDetails.active)}
                 />
               }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./context/useAuth";
 import LoginForm from "./components/LoginForm";
 import MenuBar from './components/MenuBar'
 // Konsta UI

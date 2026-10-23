@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { ChevronLeft, Power } from 'lucide-react';
 
 export default function MenuBar({ isLoggedIn, onBack }) {

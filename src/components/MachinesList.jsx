@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Loading from '../components/Loading';
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { BlockTitle, List, ListItem, Button} from 'konsta/react';
 import { RotateCw } from 'lucide-react';
 
@@ -28,20 +28,19 @@ export default function MachinesList({onSelect}) {
     setRefreshButtonEnabled(false);
     try {
       const response = await axios.get('https://scraper.shopimo.cz/api/?method=agoChecker');
-      console.log('Response status:', response.status);
+      //console.log('Response status:', response.status);
            
       if ( response.status == 200 && response.data.result == 'ok' ) {
         // API returns devices in response.data.data
         setDevices(response.data.devices || []);
-        setLoading(false);
-        setRefreshButtonEnabled(true);
-        console.log('Načteno zařízení:', json.data.length);
       } else {
-        setError('Chyba při načítání dat: ' + JSON.stringify(response));
+        setError('Chyba při načítání dat: ' + JSON.stringify(response.data));
       }
     } catch (err) {
       setError('Nepodařilo se připojit k API: ' + err.message);
     } finally {
+      setLoading(false);
+      setRefreshButtonEnabled(true);
     }
   };
 
@@ -57,6 +56,10 @@ export default function MachinesList({onSelect}) {
       </div>
       
       <BlockTitle className='font-medium'>MACHINES</BlockTitle>
+
+      {error && (
+        <p className="text-red-600 text-sm mx-4 mb-4">{error}</p>
+      )}
 
       {loading ? (
         <Loading />

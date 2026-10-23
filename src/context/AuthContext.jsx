@@ -1,8 +1,7 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { AuthContext } from "./useAuth";
 import axios from 'axios';
 import { Wifi, WifiOff, Moon } from 'lucide-react';
-
-const AuthContext = createContext();
 
 // Helper to set the authorization header for all axios requests
 const setAuthToken = (token) => {
@@ -75,7 +74,7 @@ export function AuthProvider({ children }) {
   };
 
   const getStatusIcon = (device) => {
-    if (device && ('active' in device) && Number(device.active) === 0) {
+    if (device && Number(device.active) === 0) {
       return <Moon className="w-8 h-8 text-gray-300" />;
     }
 
@@ -176,6 +175,3 @@ export function AuthProvider({ children }) {
 }
 
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
