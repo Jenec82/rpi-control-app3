@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
-import MainHeading from "./components/MainHeading";
 import MenuBar from './components/MenuBar'
 // Konsta UI
 import { App } from 'konsta/react';
@@ -24,7 +23,7 @@ function MyApp() {
       <Page>
         {isLoggedIn ? (
           <>
-            <MenuBar onBack={selectedDevice ? () => setSelectedDevice(null) : undefined} />
+            <MenuBar isLoggedIn={true} onBack={selectedDevice ? () => setSelectedDevice(null) : undefined} />
 
             {selectedDevice ? (
               <MachineDetail device={selectedDevice} onBack={() => setSelectedDevice(null)} />
@@ -34,7 +33,7 @@ function MyApp() {
           </>
         ) : (
           <>
-            <MainHeading />
+            <MenuBar isLoggedIn={false} />
             <LoginForm />
           </>
         )}
