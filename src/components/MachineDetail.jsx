@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/useAuth';
 import Loading from '../components/Loading';
 import { HatGlasses, History, HeartPulse } from 'lucide-react';
@@ -9,30 +9,23 @@ import axios from 'axios';
 
 export default function MachineDetail({ device }) {
   const [isActive, setIsActive] = useState(false);
-  const [first, setFirst] = useState(true);
   const [machineDetails, setMachineDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activatorLoading, setActivatorLoading] = useState(false);
+  // Refy drží aktuální hodnoty i pro interval (bez stale closure)
+  const firstRef = useRef(true);
+  const activatorLoadingRef = useRef(false);
+  const deviceId = device?.id;
 
-
-  useEffect(() => {
-    fetchMachineDetails();
-
-    if (device?.id) {
-      // Automatické obnovení každých 30 sekund
-      const interval = setInterval(fetchMachineDetails, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [device?.id]);
-
-  const fetchMachineDetails = async () => {
-    if( activatorLoading ) return;
+  const fetchMachineDetails = useCallback(async (force = false) => {
+    if( activatorLoadingRef.current && !force ) return;
     try {
-      const response = await axios.get(`https://scraper.shopimo.cz/api/?method=machineDetails&machine_id=${device.id}`);
+      const response = await axios.get(`https://scraper.shopimo.cz/api/?method=machineDetails&machine_id=${deviceId}`);
       if (response.data && response.data.result === 'ok') {
-        if(first) 
+        if(firstRef.current) 
         {
-          setFirst(false);
+          firstRef.current = false;
+          activatorLoadingRef.current = false;
           setActivatorLoading(false);
         }
         setMachineDetails(response.data);
@@ -43,19 +36,31 @@ export default function MachineDetail({ device }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [deviceId]);
+
+  useEffect(() => {
+    fetchMachineDetails();
+
+    if (deviceId) {
+      // Automatické obnovení každých 30 sekund
+      const interval = setInterval(() => fetchMachineDetails(), 30000);
+      return () => clearInterval(interval);
+    }
+  }, [deviceId, fetchMachineDetails]);
 
   const handleToggle = async (toggled) => {
+    activatorLoadingRef.current = true;
     setActivatorLoading(true);
     const value = toggled ? 1 : 0;
     const API_URL = `https://scraper.shopimo.cz/api/?method=machineUpdate&machine_id=${device.id}&do=active&value=${value}`;
     setIsActive(toggled);
     try {
       await axios.get(API_URL);
-      await fetchMachineDetails();
+      await fetchMachineDetails(true);
     } catch (error) {
       console.error('Error updating machine status:', error);
     } finally {
+      activatorLoadingRef.current = false;
       setActivatorLoading(false);
     }
   };
