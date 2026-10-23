@@ -4,6 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/rpi-control3/',
+  base: '/rpi-control-demo/',
   plugins: [react(),tailwindcss()],
 })
